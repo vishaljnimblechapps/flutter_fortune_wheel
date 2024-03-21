@@ -150,6 +150,9 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
   /// a section border is crossed.
   final ValueChanged<int>? onFocusItemChanged;
 
+  /// To spin the wheel in Anticlock wise
+  final bool? anticlokWise;
+
   double _getAngle(double progress) {
     return 2 * _math.pi * rotationCount * progress;
   }
@@ -163,24 +166,25 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
   /// See also:
   ///  * [FortuneBar], which provides an alternative visualization.
   /// {@endtemplate}
-  FortuneWheel({
-    Key? key,
-    required this.items,
-    this.rotationCount = FortuneWidget.kDefaultRotationCount,
-    this.selected = const Stream<int>.empty(),
-    this.duration = FortuneWidget.kDefaultDuration,
-    this.curve = FortuneCurve.spin,
-    this.indicators = kDefaultIndicators,
-    this.styleStrategy = kDefaultStyleStrategy,
-    this.animateFirst = true,
-    this.onAnimationStart,
-    this.onAnimationEnd,
-    this.alignment = Alignment.topCenter,
-    this.hapticImpact = HapticImpact.none,
-    PanPhysics? physics,
-    this.onFling,
-    this.onFocusItemChanged,
-  })  : physics = physics ?? CircularPanPhysics(),
+  FortuneWheel(
+      {Key? key,
+      required this.items,
+      this.rotationCount = FortuneWidget.kDefaultRotationCount,
+      this.selected = const Stream<int>.empty(),
+      this.duration = FortuneWidget.kDefaultDuration,
+      this.curve = FortuneCurve.spin,
+      this.indicators = kDefaultIndicators,
+      this.styleStrategy = kDefaultStyleStrategy,
+      this.animateFirst = true,
+      this.onAnimationStart,
+      this.onAnimationEnd,
+      this.alignment = Alignment.topCenter,
+      this.hapticImpact = HapticImpact.none,
+      PanPhysics? physics,
+      this.onFling,
+      this.onFocusItemChanged,
+      this.anticlokWise = false})
+      : physics = physics ?? CircularPanPhysics(),
         assert(items.length > 1),
         super(key: key);
 
@@ -242,7 +246,9 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
                       -2 * _math.pi * (selectedIndex.value / items.length);
                   final panAngle =
                       panState.distance * panFactor * isAnimatingPanFactor;
-                  final rotationAngle = _getAngle(rotateAnim.value);
+                  final rotationAngle = anticlokWise!
+                      ? -(_getAngle(rotateAnim.value))
+                      : _getAngle(rotateAnim.value);
                   final alignmentOffset = _calculateAlignmentOffset(alignment);
                   final totalAngle = selectedAngle + panAngle + rotationAngle;
 
