@@ -153,11 +153,11 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
   /// To spin the wheel in Anticlock wise
   final bool? anticlokWise;
 
-  final AnimationController? ctrl;
-
   final double? rotationalVelocity;
 
   final bool isPanUpdate;
+
+  final double? rotationValue;
 
   double _getAngle(double progress) {
     return 2 * _math.pi * rotationCount * progress;
@@ -190,9 +190,9 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
       this.onFling,
       this.onFocusItemChanged,
       this.anticlokWise = false,
-      this.ctrl,
       this.rotationalVelocity,
-      this.isPanUpdate = false})
+      this.isPanUpdate = false,
+      this.rotationValue})
       : physics = physics ?? CircularPanPhysics(),
         assert(items.length > 1),
         super(key: key);
@@ -227,7 +227,7 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
     }, []);
 
     final lastVibratedAngle = useRef<double>(0);
-    double rotationValue = ctrl?.value ?? 0.0;
+
     return PanAwareBuilder(
       behavior: HitTestBehavior.translucent,
       physics: physics,
@@ -276,7 +276,11 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
                       TransformedFortuneItem(
                         item: items[i],
                         angle: isPanUpdate
-                            ? ctrl?.value ?? 0
+                            ? (_calculateSliceAngle(i, items.length) +
+                                    totalAngle +
+                                    alignmentOffset +
+                                    (rotationValue ?? 1))
+                                .toDouble()
                             : totalAngle +
                                 alignmentOffset +
                                 _calculateSliceAngle(i, items.length),
