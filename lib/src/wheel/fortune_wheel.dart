@@ -228,83 +228,79 @@ class FortuneWheel extends HookWidget implements FortuneWidget {
 
     final lastVibratedAngle = useRef<double>(0);
     double rotationValue = ctrl?.value ?? 0.0;
-    return RotationTransition(
-      turns: AlwaysStoppedAnimation(rotationValue / 360),
-      child: PanAwareBuilder(
-        behavior: HitTestBehavior.translucent,
-        physics: physics,
-        onFling: onFling,
-        builder: (context, panState) {
-          return Stack(
-            children: [
-              AnimatedBuilder(
-                animation: rotateAnim,
-                builder: (context, _) {
-                  final size = MediaQuery.of(context).size;
-                  final meanSize = (size.width + size.height) / 2;
-                  final panFactor = 6 / meanSize;
+    return PanAwareBuilder(
+      behavior: HitTestBehavior.translucent,
+      physics: physics,
+      onFling: onFling,
+      builder: (context, panState) {
+        return Stack(
+          children: [
+            AnimatedBuilder(
+              animation: rotateAnim,
+              builder: (context, _) {
+                final size = MediaQuery.of(context).size;
+                final meanSize = (size.width + size.height) / 2;
+                final panFactor = 6 / meanSize;
 
-                  return LayoutBuilder(builder: (context, constraints) {
-                    final wheelData = _WheelData(
-                      constraints: constraints,
-                      itemCount: items.length,
-                      textDirection: Directionality.of(context),
-                    );
+                return LayoutBuilder(builder: (context, constraints) {
+                  final wheelData = _WheelData(
+                    constraints: constraints,
+                    itemCount: items.length,
+                    textDirection: Directionality.of(context),
+                  );
 
-                    final isAnimatingPanFactor =
-                        rotateAnimCtrl.isAnimating ? 0 : 1;
-                    final selectedAngle =
-                        -2 * _math.pi * (selectedIndex.value / items.length);
-                    final panAngle =
-                        panState.distance * panFactor * isAnimatingPanFactor;
-                    final rotationAngle = anticlokWise!
-                        ? -(_getAngle(rotateAnim.value))
-                        : _getAngle(rotateAnim.value);
-                    final alignmentOffset =
-                        _calculateAlignmentOffset(alignment);
-                    final totalAngle = selectedAngle + panAngle + rotationAngle;
+                  final isAnimatingPanFactor =
+                      rotateAnimCtrl.isAnimating ? 0 : 1;
+                  final selectedAngle =
+                      -2 * _math.pi * (selectedIndex.value / items.length);
+                  final panAngle =
+                      panState.distance * panFactor * isAnimatingPanFactor;
+                  final rotationAngle = anticlokWise!
+                      ? -(_getAngle(rotateAnim.value))
+                      : _getAngle(rotateAnim.value);
+                  final alignmentOffset = _calculateAlignmentOffset(alignment);
+                  final totalAngle = selectedAngle + panAngle + rotationAngle;
 
-                    final focusedIndex = _vibrateIfBorderCrossed(
-                      totalAngle,
-                      lastVibratedAngle,
-                      items.length,
-                      hapticImpact,
-                    );
-                    if (focusedIndex != null) {
-                      onFocusItemChanged?.call(focusedIndex % items.length);
-                    }
+                  final focusedIndex = _vibrateIfBorderCrossed(
+                    totalAngle,
+                    lastVibratedAngle,
+                    items.length,
+                    hapticImpact,
+                  );
+                  if (focusedIndex != null) {
+                    onFocusItemChanged?.call(focusedIndex % items.length);
+                  }
 
-                    final transformedItems = [
-                      for (var i = 0; i < items.length; i++)
-                        TransformedFortuneItem(
-                          item: items[i],
-                          angle: isPanUpdate
-                              ? rotationalVelocity ?? 0.0
-                              : totalAngle +
-                                  alignmentOffset +
-                                  _calculateSliceAngle(i, items.length),
-                          offset: wheelData.offset,
-                        ),
-                    ];
-
-                    return SizedBox.expand(
-                      child: _CircleSlices(
-                        items: transformedItems,
-                        wheelData: wheelData,
-                        styleStrategy: styleStrategy,
+                  final transformedItems = [
+                    for (var i = 0; i < items.length; i++)
+                      TransformedFortuneItem(
+                        item: items[i],
+                        angle: isPanUpdate
+                            ? ctrl?.value ?? 0
+                            : totalAngle +
+                                alignmentOffset +
+                                _calculateSliceAngle(i, items.length),
+                        offset: wheelData.offset,
                       ),
-                    );
-                  });
-                },
+                  ];
+
+                  return SizedBox.expand(
+                    child: _CircleSlices(
+                      items: transformedItems,
+                      wheelData: wheelData,
+                      styleStrategy: styleStrategy,
+                    ),
+                  );
+                });
+              },
+            ),
+            for (var it in indicators)
+              IgnorePointer(
+                child: _WheelIndicator(indicator: it),
               ),
-              for (var it in indicators)
-                IgnorePointer(
-                  child: _WheelIndicator(indicator: it),
-                ),
-            ],
-          );
-        },
-      ),
+          ],
+        );
+      },
     );
   }
 
